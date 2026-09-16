@@ -1,0 +1,3 @@
+-- Same Supabase database migration used by the NPSD Admin Dashboard.
+-- Run supabase/complete_flow.sql from the NPSD-admin-dashboard- repository first.
+-- This copy is kept here so the Student Portal repo documents the required database setup.
