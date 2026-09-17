@@ -16,6 +16,7 @@ const admin = () => {
 };
 
 const clean = (v: unknown) => String(v ?? '').trim();
+const digits = (v: unknown) => clean(v).replace(/\D/g, '');
 const hash = (v: string) =>
   createHash('sha256')
     .update(clean(v).replace(/[^0-9A-Za-z]/g, '').toLowerCase())
@@ -39,6 +40,24 @@ export async function POST(req: Request) {
       }
     }
 
+    const cnic = digits(b.cnic);
+    const guardianCnic = digits(b.guardian_cnic);
+    const phone = digits(b.phone);
+    const whatsapp = digits(b.whatsapp);
+    const emergencyPhone = digits(b.emergency_phone);
+
+    if (!/^\d{13}$/.test(cnic)) {
+      return NextResponse.json({ error: 'Student CNIC / B-Form must contain exactly 13 digits.' }, { status: 400 });
+    }
+    if (!/^\d{13}$/.test(guardianCnic)) {
+      return NextResponse.json({ error: 'Father / Guardian CNIC must contain exactly 13 digits.' }, { status: 400 });
+    }
+    for (const [label, value] of [['Student phone', phone], ['WhatsApp', whatsapp], ['Emergency phone', emergencyPhone]] as const) {
+      if (value && !/^\d{11}$/.test(value)) {
+        return NextResponse.json({ error: `${label} must contain exactly 11 digits.` }, { status: 400 });
+      }
+    }
+
     if (clean(b.password).length < 8) {
       return NextResponse.json(
         { error: 'Password must be at least 8 characters.' },
@@ -47,7 +66,7 @@ export async function POST(req: Request) {
     }
 
     const s = admin();
-    const cnicHash = hash(b.cnic);
+    const cnicHash = hash(cnic);
     const { data: existing } = await s
       .from('access_requests')
       .select('id,status')
@@ -82,9 +101,9 @@ export async function POST(req: Request) {
       dob: b.dob,
       gender: clean(b.gender),
       cnic_hash: cnicHash,
-      guardian_cnic_hash: hash(b.guardian_cnic),
-      phone: clean(b.phone) || null,
-      whatsapp: clean(b.whatsapp) || null,
+      guardian_cnic_hash: hash(guardianCnic),
+      phone: phone || null,
+      whatsapp: whatsapp || null,
       email: clean(b.email) || null,
       address: clean(b.address),
       city: clean(b.city),
@@ -96,7 +115,7 @@ export async function POST(req: Request) {
       admission_date: b.admission_date || null,
       photo_url: clean(b.photo_url) || null,
       emergency_name: clean(b.emergency_name),
-      emergency_phone: clean(b.emergency_phone),
+      emergency_phone: emergencyPhone,
       relationship: clean(b.relationship),
       notes: clean(b.notes) || null,
       status: 'pending',
