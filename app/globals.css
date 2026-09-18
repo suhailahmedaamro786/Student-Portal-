@@ -5,3 +5,121 @@
 .portalShell{max-width:1220px;margin:auto}.portalHeader{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:8px 0 20px}.brandArea{display:flex;align-items:center;gap:16px}.brandArea h1{margin:3px 0;font-size:30px}.brandArea p{margin:4px 0;color:#718096;font-size:13px}.portalTabs{padding:6px;background:#fff;border:1px solid #e5e9f0;border-radius:16px;box-shadow:0 8px 24px #18233a0a}.portalTabs button{border:0;background:transparent}.portalTabs button.selected{box-shadow:0 5px 14px #17203320}.successNotice{margin:12px 0;padding:13px 16px;border-radius:14px;background:#e9f8ef;color:#176b43;border:1px solid #c9ecd7;font-weight:800}.profileGrid{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px}.profileEditor{max-width:1000px}.profileEditor textarea{min-height:90px}.rowSub{display:block;color:#7b8799;font-size:11px;margin-top:3px}.cardActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.cardActions>button:not(.primary){border:1px solid #dce2eb;background:#f7f9fc;border-radius:10px;padding:9px 12px;font-weight:800}.selectedMini{background:#172033!important;color:#fff;border-color:#172033!important}.studentCard{width:min(900px,100%);margin:20px auto;background:#fff;color:#172033;border:1px solid #d6dce6;border-radius:20px;overflow:hidden;box-shadow:0 18px 45px #17203312}.cardBack{min-height:330px;display:flex;flex-direction:column}.cardBackHeader{padding:22px 28px;background:#172033;color:#fff;font-weight:900;letter-spacing:.08em}.backContent{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:28px;flex:1}.backContent b{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#64748b}.backContent p{margin:8px 0;color:#273449;line-height:1.5}.cardTerms{grid-column:1/-1;padding:14px;border-radius:12px;background:#f4f6f9}.cardBackBottom{display:flex;align-items:center;gap:16px;padding:14px 24px;border-top:1px solid #e5e8ed;font-size:11px;font-weight:800}.themeDark .portalTabs,.themeDark .successNotice,.themeDark .profileEditor{background:#141d2d;color:#eaf0f8;border-color:#2a374c}.themeDark .portalHeader p,.themeDark .rowSub{color:#9eabc0}.themeDark .cardActions>button:not(.primary){background:#1b2638;color:#eaf0f8;border-color:#344258}.themeDark .profileEditor input,.themeDark .profileEditor select,.themeDark .profileEditor textarea{background:#0f172a;color:#eaf0f8;border-color:#334155}@media(max-width:700px){.portalHeader{align-items:flex-start;flex-direction:column}.navActions{width:100%}.navActions>*{flex:1}.brandArea h1{font-size:25px}.profileGrid,.backContent{grid-template-columns:1fr}.cardBody{grid-template-columns:82px 1fr}.cardTerms{grid-column:auto}.cardBack{min-height:420px}.cardActions{width:100%}.cardActions .primary{margin-left:0}.portalTabs{overflow-x:auto}.portalTabs button{font-size:12px;padding:10px 12px}}@media print{.cardBack{display:flex!important}.cardActions,.portalHeader,.portalTabs,.successNotice{display:none!important}.studentCard{box-shadow:none}.cardBackBottom{display:flex!important}}
 
 .studentCard{aspect-ratio:85.6/54;width:min(856px,100%);height:auto;min-height:0}.studentCard.cardBack{min-height:0;aspect-ratio:85.6/54}.cardBack .backContent{min-height:0;grid-template-columns:1fr 1fr;align-content:center}.cardBackBottom{margin-top:auto}.cardPanel{overflow:hidden}.printCard{box-sizing:border-box}.cardBody{min-height:0}.cardInfo{min-width:0}.cardInfo h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cardInfo p span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:700px){.studentCard,.studentCard.cardBack{aspect-ratio:85.6/54}.cardBody{padding:16px}.cardInfo p{grid-template-columns:105px 1fr}.cardTop{padding:14px 18px}.cardFooter{padding:8px 18px}.backContent{padding:18px;gap:12px}.cardBackBottom{padding:8px 18px}}@media print{.studentCard,.studentCard.cardBack{width:85.6mm!important;height:54mm!important;aspect-ratio:85.6/54!important;min-height:54mm!important}.printCard{overflow:hidden!important}.cardBack .backContent{min-height:0!important}}
+
+/* Final responsive + student-card print system */
+html,body{width:100%;overflow-x:hidden}
+img,svg{max-width:100%}
+button{min-height:42px}
+.shell{width:100%;max-width:100%;padding:clamp(12px,3vw,32px)}
+.heroCard,.formCard,.centerCard,.panel,.feature{min-width:0}
+.portalShell{width:100%;min-width:0}
+.portalHeader,.brandArea,.panelHead{min-width:0}
+.brandArea>div:last-child{min-width:0}
+.brandArea h1,.brandArea p{overflow-wrap:anywhere}
+.portalTabs{max-width:100%;scrollbar-width:thin}
+.listRow span,.listRow b,.notice,.notice p{min-width:0;overflow-wrap:anywhere}
+.profileHero>div{min-width:0}
+.profileHero h1{overflow-wrap:anywhere}
+.formCard{width:100%}
+.grid2,.profileGrid{width:100%}
+input,select,textarea{max-width:100%;min-width:0}
+.cardPanel{display:block}
+.cardHelp{margin:4px 0 0;font-size:12px}
+.screenCard{width:100%}
+.studentCard{position:relative;width:min(856px,100%);aspect-ratio:85.6/54;height:auto;min-height:0;margin:20px auto;padding:0!important}
+.cardFront{display:flex;flex-direction:column}
+.cardTop{flex:0 0 auto}
+.cardBody{flex:1;min-height:0;grid-template-columns:96px minmax(0,1fr);gap:16px;padding:18px 22px}
+.cardPhoto{width:92px;height:112px;align-self:center}
+.cardInfo{min-width:0}
+.cardInfo h2{font-size:clamp(15px,2.3vw,24px);line-height:1.1;margin:0 0 9px}
+.cardInfo p{grid-template-columns:minmax(88px,110px) minmax(0,1fr);font-size:clamp(9px,1.35vw,13px);margin:5px 0}
+.cardInfo p span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cardFooter{flex:0 0 auto}
+.cardBackHeader{display:flex;justify-content:space-between;align-items:center;padding:13px 20px;font-size:12px}
+.cardBackHeader small{font-size:8px;letter-spacing:.1em}
+.cardBack .backContent{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 20px;align-content:center}
+.cardBack .backContent>div{min-width:0}
+.cardBack .backContent b{font-size:9px}
+.cardBack .backContent p{font-size:10px;line-height:1.25;margin:4px 0;overflow-wrap:anywhere}
+.cardTerms{padding:9px!important}
+.cardTerms p{font-size:8px!important}
+.cardBackBottom{padding:7px 16px;font-size:8px;gap:9px}
+.cardBackBottom svg{width:58px;height:58px;flex:0 0 58px}
+.printCardSet{display:none}
+@media(max-width:700px){
+ .shell{padding:12px}
+ .heroCard{padding:24px 18px;border-radius:22px}
+ .formTop h1,.centerCard h1{font-size:clamp(28px,8vw,38px)}
+ .formCard{padding:16px}
+ .panel{padding:16px}
+ .portalHeader{padding-bottom:12px}
+ .brandArea{gap:11px}
+ .brandMark{width:52px;height:52px;border-radius:14px;flex:0 0 52px}
+ .navActions{gap:8px}
+ .profileHero{padding:18px;gap:13px;flex-wrap:wrap}
+ .profileHero .profileBadge{margin-left:auto}
+ .metric{padding:14px}
+ .metric strong{font-size:22px}
+ .cardActions{gap:6px}
+ .cardActions button{flex:1 1 auto}
+ .cardActions .primary{width:100%}
+ .studentCard{margin-top:14px}
+ .cardBody{grid-template-columns:72px minmax(0,1fr);gap:10px;padding:12px 14px}
+ .cardPhoto{width:68px;height:82px}
+ .cardInfo h2{font-size:15px;margin-bottom:6px}
+ .cardInfo p{grid-template-columns:82px minmax(0,1fr);font-size:8px;margin:3px 0}
+ .cardTop{padding:10px 14px}
+ .cardLogo{font-size:15px}
+ .cardTop small{font-size:6px}
+ .cardTop>span{font-size:7px}
+ .cardFooter{padding:6px 14px;font-size:6px}
+ .cardBackHeader{padding:10px 14px;font-size:8px}
+ .cardBack .backContent{gap:8px;padding:10px 14px}
+ .cardBack .backContent b{font-size:7px}
+ .cardBack .backContent p{font-size:7px;margin:2px 0}
+ .cardTerms{padding:6px!important}
+ .cardTerms p{font-size:6px!important;line-height:1.15}
+ .cardBackBottom{padding:5px 10px;font-size:6px;gap:7px}
+ .cardBackBottom svg{width:42px;height:42px;flex-basis:42px}
+}
+@media(max-width:430px){
+ .navActions{width:100%}
+ .navActions>*{min-width:0}
+ .brandArea{align-items:flex-start}
+ .brandArea h1{font-size:21px}
+ .brandArea p{font-size:11px}
+ .profileHero .profileBadge{margin-left:0}
+ .cardBody{grid-template-columns:60px minmax(0,1fr);gap:8px;padding:10px}
+ .cardPhoto{width:56px;height:70px;border-radius:8px}
+ .cardInfo h2{font-size:13px}
+ .cardInfo p{grid-template-columns:70px minmax(0,1fr);font-size:7px}
+ .cardFooter{padding:5px 10px;font-size:5.5px}
+}
+@media print{
+ @page{size:auto;margin:10mm}
+ body{background:#fff!important}
+ .shell{padding:0!important}
+ .portalHeader,.portalTabs,.successNotice,.cardActions,.screenCard,.cardHelp{display:none!important}
+ .cardPanel{display:block!important;width:auto!important;padding:0!important;margin:0!important;border:0!important;box-shadow:none!important}
+ .printCardSet{display:block!important}
+ .printPage{width:100%;min-height:calc(100vh - 20mm);display:flex;align-items:center;justify-content:center;page-break-after:always;break-after:page}
+ .printPage:last-child{page-break-after:auto;break-after:auto}
+ .printPage .studentCard{display:flex!important;width:85.6mm!important;height:54mm!important;min-height:54mm!important;max-width:none!important;aspect-ratio:85.6/54!important;margin:0!important;border:1px solid #222!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ .printPage .cardBody{display:grid!important;grid-template-columns:20mm minmax(0,1fr)!important;gap:3mm!important;padding:4mm!important}
+ .printPage .cardPhoto{width:18mm!important;height:23mm!important}
+ .printPage .cardInfo h2{font-size:11pt!important;margin-bottom:2mm!important}
+ .printPage .cardInfo p{grid-template-columns:15mm minmax(0,1fr)!important;font-size:6.2pt!important;margin:1.1mm 0!important}
+ .printPage .cardTop{padding:3mm 4mm!important}
+ .printPage .cardLogo{font-size:11pt!important}
+ .printPage .cardTop small,.printPage .cardTop>span,.printPage .cardFooter{font-size:5pt!important}
+ .printPage .cardFooter{padding:2mm 4mm!important}
+ .printPage .cardBackHeader{padding:3mm 4mm!important;font-size:7pt!important}
+ .printPage .cardBack .backContent{grid-template-columns:1fr 1fr!important;gap:2.5mm!important;padding:3.5mm 4mm!important}
+ .printPage .cardBack .backContent b{font-size:5.5pt!important}
+ .printPage .cardBack .backContent p{font-size:5.5pt!important;line-height:1.2!important;margin:1mm 0!important}
+ .printPage .cardTerms{padding:2mm!important}
+ .printPage .cardTerms p{font-size:4.8pt!important;line-height:1.15!important}
+ .printPage .cardBackBottom{padding:2mm 3mm!important;font-size:5pt!important}
+ .printPage .cardBackBottom svg{width:14mm!important;height:14mm!important;flex:0 0 14mm!important}
+}
