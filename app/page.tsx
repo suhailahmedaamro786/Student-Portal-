@@ -15,7 +15,7 @@ function Registration({go}:{go:any}){
  const set=(k:string,v:string)=>setForm((x:any)=>({...x,[k]:v}));
  async function submit(e:any){e.preventDefault();setError('');
   if(form.password!==form.confirm_password)return setError('Passwords do not match.');
-  if(!/^\\d{13}$/.test(form.cnic))return setError('CNIC / B-Form must be exactly 13 digits.');
+  if(!/^[0-9]{13}$/.test(form.cnic))return setError('CNIC / B-Form must be exactly 13 digits.');
   if(!form.class_id)return setError('Please select a class.');
   setBusy(true);
   try{const fd=new FormData(); Object.entries(form).forEach(([k,v])=>fd.append(k,String(v??''))); if(photo)fd.append('photo',photo);
