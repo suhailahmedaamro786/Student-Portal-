@@ -25,6 +25,9 @@ export async function POST(req:Request){
   const {data:existing,error:existingError}=await s.from('access_requests').select('id,status,student_id').eq('cnic_hash',cnicHash).maybeSingle();
   if(existingError)throw existingError;
   if(existing)return NextResponse.json({error:`CNIC already used. Existing application: ${existing.student_id} (${existing.status}).`},{status:409});
+  const {data:existingStudent,error:studentError}=await s.from('students').select('student_id').eq('cnic_hash',cnicHash).maybeSingle();
+  if(studentError)throw studentError;
+  if(existingStudent)return NextResponse.json({error:`CNIC already used by enrolled student ${existingStudent.student_id}.`},{status:409});
   const requestId=randomUUID(), internalEmail=`student-${requestId}@npsd.invalid`;
   const {data:u,error:ue}=await s.auth.admin.createUser({email:internalEmail,password:clean(b.password),email_confirm:true,user_metadata:{full_name:clean(b.full_name),role:'student'}});
   if(ue||!u.user)throw ue||new Error('Unable to create secure account.');
