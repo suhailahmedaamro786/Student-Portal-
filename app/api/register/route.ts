@@ -2,156 +2,51 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createHash, randomUUID } from 'crypto';
 
-const admin = () => {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const clean=(v:unknown)=>String(v??'').trim();
+const digits=(v:unknown)=>clean(v).replace(/\D/g,'');
+const hash=(v:string)=>createHash('sha256').update(v.toLowerCase()).digest('hex');
 
-  if (!url || !key) {
-    throw new Error('Server Supabase configuration is missing. Check NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Netlify.');
+function db(){const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.SUPABASE_SERVICE_ROLE_KEY;if(!url||!key)throw new Error('Server Supabase configuration is missing.');return createClient(url,key,{auth:{autoRefreshToken:false,persistSession:false}})}
+
+export async function POST(req:Request){
+ try{
+  const form=await req.formData();
+  const b:any=Object.fromEntries(form.entries());
+  const required=['full_name','father_name','cast','dob','gender','cnic','class_id','password'];
+  for(const k of required)if(!clean(b[k]))return NextResponse.json({error:`${k.replaceAll('_',' ')} is required.`},{status:400});
+  const cnic=digits(b.cnic);
+  if(!/^\d{13}$/.test(cnic))return NextResponse.json({error:'CNIC / B-Form must contain exactly 13 digits.'},{status:400});
+  if(clean(b.password).length<8)return NextResponse.json({error:'Password must be at least 8 characters.'},{status:400});
+  const photo=form.get('photo');
+  if(!(photo instanceof File))return NextResponse.json({error:'Student photo is required.'},{status:400});
+  if(photo.size>2*1024*1024)return NextResponse.json({error:'Student photo must be 2 MB or smaller.'},{status:400});
+  if(!['image/jpeg','image/png','image/webp'].includes(photo.type))return NextResponse.json({error:'Photo must be JPG, PNG or WebP.'},{status:400});
+  const s=db(), cnicHash=hash(cnic);
+  const {data:existing,error:existingError}=await s.from('access_requests').select('id,status,student_id').eq('cnic_hash',cnicHash).maybeSingle();
+  if(existingError)throw existingError;
+  if(existing)return NextResponse.json({error:`CNIC already used. Existing application: ${existing.student_id} (${existing.status}).`},{status:409});
+  const requestId=randomUUID(), internalEmail=`student-${requestId}@npsd.invalid`;
+  const {data:u,error:ue}=await s.auth.admin.createUser({email:internalEmail,password:clean(b.password),email_confirm:true,user_metadata:{full_name:clean(b.full_name),role:'student'}});
+  if(ue||!u.user)throw ue||new Error('Unable to create secure account.');
+  let photoUrl:string|null=null;
+  try{
+   const ext=photo.type==='image/png'?'png':photo.type==='image/webp'?'webp':'jpg';
+   const path=`admissions/${requestId}.${ext}`;
+   const bytes=new Uint8Array(await photo.arrayBuffer());
+   const up=await s.storage.from('student-photos').upload(path,bytes,{contentType:photo.type,upsert:false});
+   if(up.error)throw up.error;
+   const pub=s.storage.from('student-photos').getPublicUrl(path);
+   photoUrl=pub.data.publicUrl;
+   const token=randomUUID()+randomUUID();
+   const payload={auth_user_id:u.user.id,tracking_token:token,full_name:clean(b.full_name),father_name:clean(b.father_name),cast:clean(b.cast),dob:b.dob,gender:clean(b.gender),cnic_hash:cnicHash,guardian_cnic_hash:cnicHash,class_id:b.class_id,photo_url:photoUrl,status:'pending'};
+   const {data:r,error:re}=await s.from('access_requests').insert(payload).select('id,student_id,tracking_token').single();
+   if(re)throw re;
+   await s.from('profiles').upsert({id:u.user.id,full_name:clean(b.full_name),email:internalEmail,role:'student',approved:false},{onConflict:'id'});
+   return NextResponse.json({request_id:r.id,student_id:r.student_id,tracking_token:r.tracking_token});
+  }catch(err){
+   await s.auth.admin.deleteUser(u.user.id);
+   if(photoUrl){const path=photoUrl.split('/student-photos/')[1];if(path)await s.storage.from('student-photos').remove([path]);}
+   throw err;
   }
-
-  return createClient(url, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-};
-
-const clean = (v: unknown) => String(v ?? '').trim();
-const digits = (v: unknown) => clean(v).replace(/\D/g, '');
-const hash = (v: string) =>
-  createHash('sha256')
-    .update(clean(v).replace(/[^0-9A-Za-z]/g, '').toLowerCase())
-    .digest('hex');
-
-export async function POST(req: Request) {
-  try {
-    const b = await req.json();
-    const required = [
-      'full_name', 'father_name', 'dob', 'gender', 'cnic', 'guardian_cnic',
-      'address', 'city', 'admission_session', 'class_id', 'emergency_name',
-      'emergency_phone', 'relationship', 'password',
-    ];
-
-    for (const k of required) {
-      if (!clean(b[k])) {
-        return NextResponse.json(
-          { error: `${k.replaceAll('_', ' ')} is required.` },
-          { status: 400 },
-        );
-      }
-    }
-
-    const cnic = digits(b.cnic);
-    const guardianCnic = digits(b.guardian_cnic);
-    const phone = digits(b.phone);
-    const whatsapp = digits(b.whatsapp);
-    const emergencyPhone = digits(b.emergency_phone);
-
-    if (!/^\d{13}$/.test(cnic)) {
-      return NextResponse.json({ error: 'Student CNIC / B-Form must contain exactly 13 digits.' }, { status: 400 });
-    }
-    if (!/^\d{13}$/.test(guardianCnic)) {
-      return NextResponse.json({ error: 'Father / Guardian CNIC must contain exactly 13 digits.' }, { status: 400 });
-    }
-    for (const [label, value] of [['Student phone', phone], ['WhatsApp', whatsapp], ['Emergency phone', emergencyPhone]] as const) {
-      if (value && !/^\d{11}$/.test(value)) {
-        return NextResponse.json({ error: `${label} must contain exactly 11 digits.` }, { status: 400 });
-      }
-    }
-
-    if (clean(b.password).length < 8) {
-      return NextResponse.json(
-        { error: 'Password must be at least 8 characters.' },
-        { status: 400 },
-      );
-    }
-
-    const s = admin();
-    const cnicHash = hash(cnic);
-    const { data: existing } = await s
-      .from('access_requests')
-      .select('id,status')
-      .eq('cnic_hash', cnicHash)
-      .maybeSingle();
-
-    if (existing) {
-      return NextResponse.json(
-        { error: `A registration already exists for this CNIC (${existing.status}).` },
-        { status: 409 },
-      );
-    }
-
-    const requestId = randomUUID();
-    const internalEmail = `student-${requestId}@npsd.invalid`;
-    const { data: u, error: ue } = await s.auth.admin.createUser({
-      email: internalEmail,
-      password: clean(b.password),
-      email_confirm: true,
-      user_metadata: { full_name: clean(b.full_name), role: 'student' },
-    });
-
-    if (ue || !u.user) throw ue || new Error('Unable to create secure account.');
-
-    const token = randomUUID() + randomUUID();
-    const payload = {
-      auth_user_id: u.user.id,
-      tracking_token: token,
-      full_name: clean(b.full_name),
-      father_name: clean(b.father_name),
-      guardian_name: clean(b.guardian_name),
-      dob: b.dob,
-      gender: clean(b.gender),
-      cnic_hash: cnicHash,
-      guardian_cnic_hash: hash(guardianCnic),
-      phone: phone || null,
-      whatsapp: whatsapp || null,
-      email: clean(b.email) || null,
-      address: clean(b.address),
-      city: clean(b.city),
-      admission_session: clean(b.admission_session),
-      class_id: b.class_id,
-      section: clean(b.section) || null,
-      previous_school: clean(b.previous_school) || null,
-      previous_class: clean(b.previous_class) || null,
-      admission_date: b.admission_date || null,
-      photo_url: clean(b.photo_url) || null,
-      emergency_name: clean(b.emergency_name),
-      emergency_phone: emergencyPhone,
-      relationship: clean(b.relationship),
-      notes: clean(b.notes) || null,
-      status: 'pending',
-    };
-
-    const { data: r, error: re } = await s
-      .from('access_requests')
-      .insert(payload)
-      .select('id,student_id,tracking_token')
-      .single();
-
-    if (re) {
-      await s.auth.admin.deleteUser(u.user.id);
-      throw re;
-    }
-
-    await s.from('profiles').upsert(
-      {
-        id: u.user.id,
-        full_name: clean(b.full_name),
-        email: clean(b.email) || internalEmail,
-        role: 'student',
-        approved: false,
-      },
-      { onConflict: 'id' },
-    );
-
-    return NextResponse.json({
-      request_id: r.id,
-      student_id: r.student_id,
-      tracking_token: r.tracking_token,
-    });
-  } catch (e: any) {
-    return NextResponse.json(
-      { error: e?.message || 'Registration failed.' },
-      { status: 500 },
-    );
-  }
+ }catch(e:any){return NextResponse.json({error:e?.message||'Registration failed.'},{status:500})}
 }
