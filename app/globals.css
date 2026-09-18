@@ -123,3 +123,28 @@ input,select,textarea{max-width:100%;min-width:0}
  .printPage .cardBackBottom{padding:2mm 3mm!important;font-size:5pt!important}
  .printPage .cardBackBottom svg{width:14mm!important;height:14mm!important;flex:0 0 14mm!important}
 }
+
+/* Back ID card: QR left, important below */
+.cardBack{position:relative}
+.cardBack .backContent{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto;align-content:start;gap:10px 18px;padding:15px 20px 8px}
+.cardBack .cardTerms{grid-column:1/-1;grid-row:2;align-self:end;padding:8px!important;margin-top:0}
+.cardBack .cardTerms b{display:block;margin-bottom:2px}
+.cardBack .cardTerms p{margin:2px 0!important;line-height:1.15!important}
+.cardBackBottom{justify-content:flex-start;gap:12px;padding:7px 16px}
+.cardBackBottom svg{width:68px!important;height:68px!important;flex:0 0 68px!important}
+.cardBackBottom span{font-size:8px;line-height:1.2}
+@media(max-width:700px){
+ .cardBack .backContent{grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:7px 10px;padding:9px 12px 5px}
+ .cardBack .cardTerms{grid-column:1/-1;grid-row:2}
+ .cardBackBottom{padding:5px 10px;gap:8px}
+ .cardBackBottom svg{width:52px!important;height:52px!important;flex-basis:52px!important}
+ .cardBackBottom span{font-size:6px}
+}
+@media print{
+ .printPage .cardBack .backContent{grid-template-columns:1fr 1fr!important;grid-template-rows:auto auto!important;gap:2mm 3mm!important;padding:3mm 4mm 1.5mm!important}
+ .printPage .cardBack .cardTerms{grid-column:1/-1!important;grid-row:2!important;padding:1.5mm!important}
+ .printPage .cardBack .cardTerms p{font-size:4.8pt!important;line-height:1.1!important}
+ .printPage .cardBackBottom{justify-content:flex-start!important;padding:1.5mm 3mm!important}
+ .printPage .cardBackBottom svg{width:18mm!important;height:18mm!important;flex-basis:18mm!important}
+ .printPage .cardBackBottom span{font-size:5pt!important}
+}
