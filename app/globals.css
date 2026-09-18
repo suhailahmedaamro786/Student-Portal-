@@ -148,3 +148,38 @@ input,select,textarea{max-width:100%;min-width:0}
  .printPage .cardBackBottom svg{width:18mm!important;height:18mm!important;flex-basis:18mm!important}
  .printPage .cardBackBottom span{font-size:5pt!important}
 }
+
+
+/* FINAL: exactly two print pages, no overflow/blank page */
+@media print {
+  @page { size: A4 portrait; margin: 10mm; }
+  .printCardSet { display: block !important; }
+  .printPage {
+    width: 100% !important;
+    height: 270mm !important;
+    min-height: 270mm !important;
+    max-height: 270mm !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .printPage:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+  .printPage .studentCard {
+    flex: 0 0 auto !important;
+    width: 85.6mm !important;
+    height: 54mm !important;
+    min-height: 54mm !important;
+    max-height: 54mm !important;
+    margin: 0 !important;
+  }
+  .screenCard { display: none !important; }
+}
