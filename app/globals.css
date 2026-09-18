@@ -267,3 +267,67 @@ input,select,textarea{max-width:100%;min-width:0}
   }
   .printPage .cardBackBottom span { font-size: 4.5pt !important; }
 }
+
+
+/* FINAL BACK: branded QR-only student ID card */
+.cardBack {
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  position:relative !important;
+  padding:20px !important;
+  background:#fff !important;
+}
+.qrBrand {
+  font-size:30px;
+  font-weight:950;
+  letter-spacing:.12em;
+  line-height:1;
+  color:#172033;
+  text-align:center;
+}
+.qrBrandSub {
+  margin-top:6px;
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.16em;
+  color:#64748b;
+  text-align:center;
+}
+.cardBackQR {
+  display:grid;
+  place-items:center;
+  margin-top:18px;
+}
+.cardBackQR svg {
+  width:180px !important;
+  height:180px !important;
+  max-width:none !important;
+}
+@media(max-width:700px) {
+  .cardBack { padding:12px !important; }
+  .qrBrand { font-size:21px; }
+  .qrBrandSub { font-size:6px; margin-top:4px; }
+  .cardBackQR { margin-top:10px; }
+  .cardBackQR svg { width:120px !important; height:120px !important; }
+}
+@media print {
+  .printPage .cardBack {
+    display:flex !important;
+    width:85.6mm !important;
+    height:54mm !important;
+    min-height:54mm !important;
+    max-height:54mm !important;
+    padding:4mm !important;
+    align-items:center !important;
+    justify-content:center !important;
+  }
+  .printPage .qrBrand { font-size:12pt !important; letter-spacing:.12em !important; }
+  .printPage .qrBrandSub { font-size:4.5pt !important; margin-top:1.2mm !important; }
+  .printPage .cardBackQR { margin-top:2.5mm !important; }
+  .printPage .cardBackQR svg {
+    width:31mm !important;
+    height:31mm !important;
+  }
+}
