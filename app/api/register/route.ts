@@ -41,7 +41,7 @@ export async function POST(req:Request){
    const pub=s.storage.from('student-photos').getPublicUrl(path);
    photoUrl=pub.data.publicUrl;
    const token=randomUUID()+randomUUID();
-   const payload={auth_user_id:u.user.id,tracking_token:token,full_name:clean(b.full_name),father_name:clean(b.father_name),cast:clean(b.cast),dob:b.dob,gender:clean(b.gender),cnic:cnic,cnic_hash:cnicHash,guardian_cnic_hash:cnicHash,class_id:b.class_id,photo_url:photoUrl,status:'pending'};
+   const payload={auth_user_id:u.user.id,tracking_token:token,full_name:clean(b.full_name),father_name:clean(b.father_name),student_cast:clean(b.cast),dob:b.dob,gender:clean(b.gender),cnic:cnic,cnic_hash:cnicHash,guardian_cnic_hash:cnicHash,class_id:b.class_id,photo_url:photoUrl,status:'pending'};
    const {data:r,error:re}=await s.from('access_requests').insert(payload).select('id,student_id,tracking_token').single();
    if(re)throw re;
    await s.from('profiles').upsert({id:u.user.id,full_name:clean(b.full_name),email:internalEmail,role:'student',approved:false},{onConflict:'id'});
