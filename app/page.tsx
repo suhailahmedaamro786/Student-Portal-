@@ -43,108 +43,25 @@ function Login({onSuccess,go}:{onSuccess:any;go:any}){const [cnic,setCnic]=useSt
  async function submit(e:any){e.preventDefault();setBusy(true);setError('');try{const r=await fetch('/api/cnic-login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({cnic,password})});const j=await r.json();if(!r.ok)throw new Error(j.error||'Verification failed.');const s=supabase();const {error:e2}=await s.auth.setSession(j.session);if(e2)throw e2;const {data:u}=await s.auth.getUser();if(!u.user)throw new Error('Unable to verify the signed-in account.');const p={role:'student',approved:true};onSuccess({...u.user,role:p.role,full_name:u.user.user_metadata?.full_name||j.student_id||'Student'})}catch(e:any){setError(e.message)}finally{setBusy(false)}}
  return <div className="centerCard"><button className="back" onClick={()=>go('home')}>← Back</button><span className="eyebrow">STUDENT LOGIN</span><h1>Welcome back</h1><p>Enter your CNIC / B-Form and password after admin approval.</p><form onSubmit={submit}><Field l="CNIC / B-Form *" v={cnic} set={(_:any,v:string)=>setCnic(v)} k="" inputMode="numeric" maxLength={13}/><Field l="Password *" type="password" v={password} set={(_:any,v:string)=>setPassword(v)} k=""/>{error&&<div className="error">{error}</div>}<button className="primary full" disabled={busy}>{busy?'Signing in…':'Open Student Portal'}</button></form><p className="muted">New student? <button className="textBtn" onClick={()=>go('register')}>Apply for admission</button> · <button className="textBtn" onClick={()=>go('status')}>Check status</button></p></div>}
 function Dashboard({user}:{user:any}){
- const [dark,setDark]=useState(false);
- const [children,setChildren]=useState<Child[]>([]);
- const [selected,setSelected]=useState('');
- const [attendance,setAttendance]=useState<any[]>([]);
- const [results,setResults]=useState<any[]>([]);
- const [announcements,setAnnouncements]=useState<any[]>([]);
- const [loading,setLoading]=useState(true);
-
- async function loadChild(id:string){
-  const s=supabase();
-  const [a,r,n]=await Promise.all([
-   s.from('attendance').select('attendance_date,status').eq('student_id',id).order('attendance_date',{ascending:false}).limit(31),
-   s.from('results').select('marks_obtained,total_marks,grade,position,pass,exams(name,exam_date)').eq('student_id',id).eq('published',true).order('id',{ascending:false}).limit(50),
-   s.from('announcements').select('id,title,body,published_at').eq('published',true).order('published_at',{ascending:false}).limit(5)
-  ]);
-  setAttendance(a.data||[]);
-  setResults(r.data||[]);
-  setAnnouncements(n.data||[]);
-  setLoading(false);
- }
-
- async function load(){
-  const s=supabase();
-  const {data}=await s.from('students').select('id,student_id,full_name,father_name,photo_url,class_id,classes(name,section)').eq('user_id',user.id).maybeSingle();
-  const list:Child[] = data ? [{
-   ...data,
-   className:(data as any).classes
-    ? String((data as any).classes.name).replace(/^Class\\s*/i,'')+' / '+String((data as any).classes.section)
-    : ''
-  }] : [];
-  setChildren(list);
-  if(list[0]){
-   setSelected(list[0].id);
-   await loadChild(list[0].id);
-  }else{
-   setLoading(false);
-  }
- }
-
- useEffect(()=>{void load()},[user.id]);
-
- const child=children.find(c=>c.id===selected);
- if(loading)return <main className="shell"><div className="loaderCard">Loading student portal…</div></main>;
-
- return <main className={"shell "+(dark?'themeDark':'')}>
-  <div className="portalShell">
-   <header className="portalHeader">
-    <div>
-     <span className="eyebrow">NPSD Student Portal</span>
-     <h1>Welcome, {user.full_name||child?.full_name||'Student'}</h1>
-     <p>{child?.student_id} • {child?.className||'Class'}</p>
-    </div>
-    <div className="navActions">
-     <button className="themeBtn" onClick={()=>setDark(!dark)}>{dark?'☀️':'🌙'} Theme</button>
-     <button className="secondary" onClick={()=>supabase().auth.signOut().then(()=>location.reload())}>Sign out</button>
-    </div>
-   </header>
-   <div className="portalGrid">
-    <section className="portalCard">
-     <h2>Student Profile</h2>
-     {child?.photo_url&&<img src={child.photo_url} alt="Student" className="studentPhoto"/>}
-     <p><b>Name:</b> {child?.full_name}</p>
-     <p><b>Student ID:</b> {child?.student_id}</p>
-     <p><b>Father:</b> {child?.father_name||'—'}</p>
-     <p><b>Class:</b> {child?.className||'—'}</p>
-    </section>
-    <section className="portalCard cardPanel">
-     <h2>Digital Student Card</h2>
-     <div className="studentCardPreview printCard">
-      <div className="cardTop">
-       <div><div className="cardLogo">NPSD</div><small>NOBLE PUBLIC SCHOOL DADU</small></div>
-       <span>STUDENT ID CARD</span>
-      </div>
-      <div className="cardBody">
-       <div className="cardPhoto">{child?.photo_url?<img src={child.photo_url} alt="Student"/>:'🎓'}</div>
-       <div className="cardInfo">
-        <h2>{child?.full_name}</h2>
-        <p><b>Student ID</b><span>{child?.student_id}</span></p>
-        <p><b>Class / Section</b><span>{child?.className||'—'}</span></p>
-        <p><b>Father</b><span>{child?.father_name||'—'}</span></p>
-        <p><b>Status</b><span>ENROLLED</span></p>
-       </div>
-       <div className="qrBox"><QRCodeSVG value={child?.student_id||''} size={126} level="H" includeMargin/><small>SCAN FOR ATTENDANCE</small></div>
-      </div>
-      <div className="cardFooter"><span>Official Student Card</span><span>NPSD · 2026–27</span></div>
-     </div>
-     <button className="primary" onClick={()=>window.print()}>🖨️ Print / Save PDF</button>
-    </section>
-    <section className="portalCard">
-     <h2>Attendance</h2>
-     <p>{attendance.filter(a=>a.status==='present').length} present records in recent history.</p>
-     {attendance.slice(0,7).map((a,i)=><p key={i}>{a.attendance_date} — <b>{a.status}</b></p>)}
-    </section>
-    <section className="portalCard">
-     <h2>Results</h2>
-     {results.length ? results.slice(0,8).map((r,i)=><p key={i}>{(r.exams as any)?.name||'Exam'} — {r.marks_obtained}/{r.total_marks} — {r.grade||'—'}</p>) : <p className="muted">No published results yet.</p>}
-    </section>
-    <section className="portalCard">
-     <h2>Announcements</h2>
-     {announcements.length ? announcements.map(a=><div key={a.id}><b>{a.title}</b><p>{a.body}</p></div>) : <p className="muted">No announcements.</p>}
-    </section>
-   </div>
-  </div>
- </main>;
+ const [dark,setDark]=useState(false),[tab,setTab]=useState<'overview'|'profile'|'card'|'attendance'|'results'|'announcements'>('overview');
+ const [child,setChild]=useState<any>(null),[attendance,setAttendance]=useState<any[]>([]),[results,setResults]=useState<any[]>([]),[announcements,setAnnouncements]=useState<any[]>([]),[loading,setLoading]=useState(true),[notice,setNotice]=useState('');
+ const load=async()=>{setLoading(true);const s=supabase();const {data}=await s.from('students').select('id,student_id,full_name,father_name,student_cast,dob,date_of_birth,gender,cnic,guardian_name,phone,whatsapp,email,address,photo_url,class_id,active,classes(name,section)').eq('user_id',user.id).maybeSingle();setChild(data||null);if(data){const [a,r,n]=await Promise.all([s.from('attendance').select('attendance_date,status').eq('student_id',data.id).order('attendance_date',{ascending:false}).limit(100),s.from('results').select('marks_obtained,total_marks,grade,position,pass,exams(name,exam_date)').eq('student_id',data.id).eq('published',true).order('id',{ascending:false}).limit(50),s.from('announcements').select('id,title,body,published_at').eq('published',true).order('published_at',{ascending:false}).limit(10)]);setAttendance(a.data||[]);setResults(r.data||[]);setAnnouncements(n.data||[])}setLoading(false)};useEffect(()=>{void load()},[user.id]);
+ const cls=child?.classes?String(child.classes.name).replace(/^Class\\s*/i,'')+' / '+String(child.classes.section):'—';const present=attendance.filter(x=>x.status==='present').length;const attendancePct=attendance.length?Math.round(present/attendance.length*100):0;const avg=results.length?Math.round(results.reduce((sum,x)=>sum+(Number(x.marks_obtained)||0)/(Number(x.total_marks)||1)*100,0)/results.length):0;
+ async function saveProfile(form:any){setNotice('');const s=supabase();const {data:session}=await s.auth.getSession();const r=await fetch('/api/student-profile',{method:'PATCH',headers:{'content-type':'application/json',authorization:`Bearer ${session.session?.access_token||''}`},body:JSON.stringify(form)});const j=await r.json();if(!r.ok)throw new Error(j.error||'Profile update failed.');setChild(j.student);setNotice('Profile updated successfully.')}
+ if(loading)return <main className="shell"><div className="loaderCard">Loading your secure student portal…</div></main>;
+ if(!child)return <main className="shell"><div className="centerCard"><h1>Student record unavailable</h1><p>Please contact school administration.</p></div></main>;
+ return <main className={"shell "+(dark?'themeDark':'')}><div className="portalShell">
+ <header className="portalHeader"><div className="brandArea"><div className="brandMark">NPSD</div><div><span className="eyebrow">Noble Public School Dadu</span><h1>Student Portal</h1><p>{child.full_name} · {child.student_id} · {cls}</p></div></div><div className="navActions"><button className="themeBtn" onClick={()=>setDark(!dark)}>{dark?'☀️':'🌙'}</button><button className="secondary" onClick={()=>supabase().auth.signOut().then(()=>location.reload())}>Sign out</button></div></header>
+ <nav className="portalTabs">{[['overview','Overview'],['profile','My Profile'],['card','Student Card'],['attendance','Attendance'],['results','Results'],['announcements','Announcements']].map(([id,label])=><button key={id} className={tab===id?'selected':''} onClick={()=>setTab(id as any)}>{label}</button>)}</nav>
+ {notice&&<div className="successNotice">✓ {notice}</div>}
+ {tab==='overview'&&<><section className="profileHero"><div className="avatar">{child.photo_url?<img src={child.photo_url} alt="Student"/>:'🎓'}</div><div><span className="eyebrow">ENROLLED STUDENT</span><h1>{child.full_name}</h1><p>{child.student_id} · {cls}</p></div><span className="profileBadge">ACTIVE</span></section><div className="metricGrid"><Metric icon="📅" label="Attendance" value={attendancePct+'%'} sub={attendance.length+' recent records'}/><Metric icon="📚" label="Published Exams" value={String(results.length)} sub="Available results"/><Metric icon="🎯" label="Average" value={avg+'%'} sub="Published results"/><Metric icon="📢" label="Notices" value={String(announcements.length)} sub="Latest announcements"/></div><div className="portalGrid"><section className="panel"><div className="panelHead"><h2>Recent Attendance</h2><button className="textBtn" onClick={()=>setTab('attendance')}>View all →</button></div>{attendance.slice(0,7).map((a,i)=><div className="listRow" key={i}><span>{a.attendance_date}</span><b className={'mini '+a.status}>{a.status}</b></div>)}</section><section className="panel"><div className="panelHead"><h2>Recent Results</h2><button className="textBtn" onClick={()=>setTab('results')}>View all →</button></div>{results.slice(0,6).map((r,i)=><div className="listRow" key={i}><span>{(r.exams as any)?.name||'Exam'}</span><b>{r.marks_obtained}/{r.total_marks}</b></div>)}{!results.length&&<p className="muted">No published results yet.</p>}</section></div></>}
+ {tab==='profile'&&<ProfileEditor child={child} onSave={saveProfile}/>}
+ {tab==='card'&&<StudentCard child={child}/>}
+ {tab==='attendance'&&<section className="panel fullPanel"><div className="panelHead"><h2>Attendance Record</h2><b>{attendancePct}%</b></div><div className="progress"><span style={{width:attendancePct+'%'}}/></div>{attendance.map((a,i)=><div className="listRow" key={i}><span>{a.attendance_date}</span><b className={'mini '+a.status}>{a.status}</b></div>)}</section>}
+ {tab==='results'&&<section className="panel fullPanel"><h2>Published Results</h2>{results.map((r,i)=><div className="listRow" key={i}><span>{(r.exams as any)?.name||'Exam'}<small className="rowSub">{(r.exams as any)?.exam_date||''}</small></span><b>{r.marks_obtained}/{r.total_marks} · {r.grade||'—'}</b></div>)}{!results.length&&<p className="muted">No published results yet.</p>}</section>}
+ {tab==='announcements'&&<section className="panel fullPanel"><h2>School Announcements</h2>{announcements.map(a=><article className="notice" key={a.id}><b>{a.title}</b><p>{a.body}</p><small>{a.published_at?new Date(a.published_at).toLocaleDateString():''}</small></article>)}{!announcements.length&&<p className="muted">No announcements.</p>}</section>}
+ </div></main>;
 }
+function Metric({icon,label,value,sub}:{icon:string;label:string;value:string;sub:string}){return <div className="metric"><span>{icon}</span><div><small>{label}</small><strong>{value}</strong><em>{sub}</em></div></div>}
+function ProfileEditor({child,onSave}:{child:any;onSave:(x:any)=>Promise<void>}){const [form,setForm]=useState<any>({full_name:child.full_name||'',father_name:child.father_name||'',student_cast:child.student_cast||'',gender:child.gender||'',guardian_name:child.guardian_name||'',phone:child.phone||'',whatsapp:child.whatsapp||'',email:child.email||'',address:child.address||'',dob:child.dob||child.date_of_birth||''});const [busy,setBusy]=useState(false);const [error,setError]=useState('');const set=(k:string,v:string)=>setForm((x:any)=>({...x,[k]:v}));async function submit(e:any){e.preventDefault();setBusy(true);setError('');try{await onSave(form)}catch(e:any){setError(e.message)}finally{setBusy(false)}}return <section className="panel profileEditor"><div className="panelHead"><div><span className="eyebrow">ACCOUNT & DETAILS</span><h2>My Student Profile</h2></div><span className="profileBadge">Student</span></div><p className="muted">Update the personal contact details you are allowed to maintain. Official admission fields remain protected.</p><form onSubmit={submit}><div className="profileGrid"><Field l="Full Name *" v={form.full_name} set={set} k="full_name"/><Field l="Father Name" v={form.father_name} set={set} k="father_name"/><Field l="Cast" v={form.student_cast} set={set} k="student_cast"/><Field l="Gender" v={form.gender} set={set} k="gender"/><Field l="Guardian Name" v={form.guardian_name} set={set} k="guardian_name"/><Field l="Mobile (11 digits)" v={form.phone} set={set} k="phone" inputMode="numeric" maxLength={11}/><Field l="WhatsApp (11 digits)" v={form.whatsapp} set={set} k="whatsapp" inputMode="numeric" maxLength={11}/><Field l="Email" v={form.email} set={set} k="email"/><Field l="Date of Birth" type="date" v={form.dob} set={set} k="dob"/><label>Address<textarea value={form.address} onChange={e=>set('address',e.target.value)}/></label></div>{error&&<div className="error">{error}</div>}<button className="primary" disabled={busy}>{busy?'Saving…':'Save Profile Changes'}</button></form></section>}
+function StudentCard({child}:{child:any}){const [side,setSide]=useState<'front'|'back'>('front');return <section className="panel cardPanel"><div className="panelHead"><div><span className="eyebrow">DIGITAL IDENTITY</span><h2>Student Card</h2></div><div className="cardActions"><button className={side==='front'?'selectedMini':''} onClick={()=>setSide('front')}>Front</button><button className={side==='back'?'selectedMini':''} onClick={()=>setSide('back')}>Back</button><button className="primary" onClick={()=>window.print()}>Print / PDF</button></div></div>{side==='front'?<div className="studentCard printCard"><div className="cardTop"><div><div className="cardLogo">NPSD</div><small>NOBLE PUBLIC SCHOOL DADU</small></div><span>STUDENT ID CARD</span></div><div className="cardBody"><div className="cardPhoto">{child.photo_url?<img src={child.photo_url} alt="Student"/>:'🎓'}</div><div className="cardInfo"><h2>{child.full_name}</h2><p><b>Student ID</b><span>{child.student_id}</span></p><p><b>Class / Section</b><span>{child.classes?.name?.replace(/^Class\\s*/i,'')} / {child.classes?.section||'—'}</span></p><p><b>Father</b><span>{child.father_name||'—'}</span></p><p><b>Gender</b><span>{child.gender||'—'}</span></p><p><b>Status</b><span>ENROLLED</span></p></div><div className="qrBox"><QRCodeSVG value={child.student_id||''} size={120} level="H" includeMargin/><small>VERIFY STUDENT ID</small></div></div><div className="cardFooter"><span>Official Student Card</span><span>Academic Session 2026–27</span></div></div>:<div className="studentCard printCard cardBack"><div className="cardBackHeader">NPSD · STUDENT ID CARD</div><div className="backContent"><div><b>Emergency / Guardian</b><p>{child.guardian_name||child.father_name||'School record'}</p><p>{child.phone||child.whatsapp||'Contact school administration'}</p></div><div><b>Address</b><p>{child.address||'Not provided'}</p></div><div><b>Identification</b><p>CNIC / B-Form: {child.cnic||'Protected'}</p><p>Student ID: {child.student_id}</p></div><div className="cardTerms"><b>Important</b><p>This card remains school property. If found, please return it to Noble Public School Dadu. For verification, present this card to authorized school staff.</p></div></div><div className="cardBackBottom"><QRCodeSVG value={child.student_id||''} size={78} level="M"/><span>Authorized Student Identification · 2026–27</span></div></div>}</section>}
