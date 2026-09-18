@@ -331,3 +331,82 @@ input,select,textarea{max-width:100%;min-width:0}
     height:31mm !important;
   }
 }
+
+
+/* FINAL BACK: branded QR + bottom IMPORTANT notice */
+.cardBack{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  position:relative !important;
+  padding:18px 18px 10px !important;
+  background:#fff !important;
+  box-sizing:border-box !important;
+}
+.cardBack .qrBrand{margin-top:2px !important}
+.cardBack .cardBackQR{
+  display:grid !important;
+  place-items:center !important;
+  margin-top:12px !important;
+}
+.cardBack .cardBackQR svg{
+  width:150px !important;
+  height:150px !important;
+  max-width:none !important;
+}
+.cardImportant{
+  width:100% !important;
+  margin-top:auto !important;
+  padding:7px 10px 6px !important;
+  border-top:1px solid #dbe2ea !important;
+  text-align:center !important;
+  box-sizing:border-box !important;
+}
+.cardImportant b{
+  display:block !important;
+  font-size:9px !important;
+  letter-spacing:.12em !important;
+  color:#172033 !important;
+  line-height:1 !important;
+}
+.cardImportant p{
+  margin:3px auto 0 !important;
+  max-width:90% !important;
+  font-size:7px !important;
+  line-height:1.15 !important;
+  color:#64748b !important;
+}
+@media(max-width:700px){
+  .cardBack{padding:10px 10px 6px !important}
+  .cardBack .cardBackQR{margin-top:8px !important}
+  .cardBack .cardBackQR svg{width:115px !important;height:115px !important}
+  .cardImportant{padding:5px 7px 4px !important}
+  .cardImportant b{font-size:6.5px !important}
+  .cardImportant p{font-size:5.5px !important;margin-top:2px !important}
+}
+@media print{
+  .printPage .cardBack{
+    width:85.6mm !important;
+    height:54mm !important;
+    min-height:54mm !important;
+    max-height:54mm !important;
+    padding:3mm 3.5mm 2mm !important;
+    justify-content:flex-start !important;
+  }
+  .printPage .cardBack .cardBackQR{margin-top:2mm !important}
+  .printPage .cardBack .cardBackQR svg{
+    width:29mm !important;
+    height:29mm !important;
+  }
+  .printPage .cardImportant{
+    margin-top:auto !important;
+    padding:1.5mm 2mm 1mm !important;
+  }
+  .printPage .cardImportant b{font-size:5pt !important}
+  .printPage .cardImportant p{
+    font-size:4.2pt !important;
+    line-height:1.1 !important;
+    margin-top:.7mm !important;
+  }
+}
